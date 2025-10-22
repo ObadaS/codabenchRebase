@@ -757,9 +757,9 @@ class PhaseViewSet(ModelViewSet):
         else:
             raise PermissionDenied(error_message)
 
-    # @swagger_auto_schema(responses={200: PhaseResultsSerializer})
+    #@swagger_auto_schema(responses={200: PhaseResultsSerializer})
     @extend_schema(responses={200: PhaseResultsSerializer})
-    @action(detail=True, methods=['GET'])
+    @action(detail=True, methods=['GET'], permission_classes=[AllowAny])
     def get_leaderboard(self, request, pk):
         phase = self.get_object()
         if phase.competition.fact_sheet:
