@@ -4,6 +4,7 @@ jobs:
   test:
     machine:
       image: ubuntu-2204:2024.01.2
+    resource_class: large
     steps:
       - checkout
 
@@ -22,10 +23,9 @@ jobs:
           #  x11vnc -forever -nopw
           background: true
 
-      - run: 
+      - run:
           name: "Setup: Copy environment variables"
           command: cp .env_circleci .env
-
 
       - run:
           name: "Setup: Create directories for MinIO (cannot be made by docker for some reason)"
@@ -38,19 +38,19 @@ jobs:
           command: |
             docker compose -f docker-compose.yml -f docker-compose.selenium.yml up -d
             docker compose -f docker-compose.yml -f docker-compose.selenium.yml exec django python manage.py collectstatic --noinput
+            docker compose -f docker-compose.yml -f docker-compose.selenium.yml exec django python manage.py migrate
 
-      - run: 
+      - run:
           name: "Lint: Check code style with flake8"
           command: docker-compose exec django flake8 src/
 
-
-      - run: 
+      - run:
           name: "Docker: Pull required images"
           # not available without "not e2e" tests as they pull ahead of time
           command: |
             docker pull codalab/codalab-legacy:py37 
             docker pull codalab/codalab-legacy:py3 
-            docker pull vergilgxw/autotable:v2 
+            docker pull vergilgxw/autotable:v2
 
       - run:
           name: "Tests: Run unit/integration tests (excluding e2e)"
@@ -66,7 +66,6 @@ jobs:
       #     name: e2e tests - competitions
       #     command: docker compose -f docker-compose.yml -f docker-compose.selenium.yml exec django py.test src/tests/functional/test_competitions.py -m e2e
       #     no_output_timeout: 60m
-
 
       - store_artifacts:
           path: artifacts/
